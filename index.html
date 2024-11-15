@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --area-img-width: 500px;
+      --book-sn-width: 50px;
+      --book-author-width: 120px;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      height: 100%;
+      background-color: #828282;
+    }
+
+    .big {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      overflow-y: scroll;
+      display: none;
+    }
+
+    .bigShow {
+      display: flex;
+    }
+
+    .area {
+      width: 90%;
+      min-height: 90%;
+      background-color: #fff;
+      display: flex;
+    }
+
+    .area .img {
+      width: var(--area-img-width);
+    }
+
+    .area .img img {
+      width: 100%;
+    }
+
+    .area .content {
+      width: calc(100% - var(--area-img-width));
+    }
+
+    .books {
+      padding: 20px;
+      background-color: #fff;
+    }
+
+    .books .book {
+      position: relative;
+      background-color: rgb(249, 233, 233);
+      display: flex;
+      padding: 5px;
+      margin-bottom: 5px;
+    }
+
+    .books .book:hover {
+      background-color: rgb(241, 152, 152);
+    }
+
+    .books .sn {
+      width: var(--book-sn-width);
+      text-align: center;
+    }
+
+    .books .title {
+      width: calc(100% - var(--book-sn-width) - var(--book-author-width));
+    }
+
+    .books .author {
+      width: var(--book-author-width);
+    }
+  </style>
+  <title>Fetch get/post api 練習</title>
+</head>
+
+<body>
+  <div class="books">
+    <!-- <div class="book">
+      <div class="sn">${n}</div>
+      <div class="title">${title}</div>
+      <div class="author">${auth}</div>
+    </div> -->
+  </div>
+  <div class="big">
+    <div class="area">
+      <div class="img">
+        <img src="" alt="">
+      </div>
+      <div class="content">
+        <h1>標題</h1>
+        <h2>作者</h2>
+        <h3>上架日期</h3>
+        <div class="descd">介紹內文</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // AJAX技術 基本使用方法
+
+    const books = document.querySelector(".books");
+    const big = document.querySelector(".big");
+    // 減少記憶體的使用把會一直使用到的用邊數使用就不用一直重新讀取
+    const bigImg = document.querySelector(".big img");
+    const bigH1 = document.querySelector(".big h1");
+    const bigH2 = document.querySelector(".big h2");
+    const bigH3 = document.querySelector(".big h3");
+    const bigDescd = document.querySelector(".big .descd");
+    let url1 = "https://sagedaben.com/iSpan/api/list.php";
+    let url2 = "https://sagedaben.com/iSpan/api/detail.php";
+
+    // 5.讓bigShow樣式點擊消失
+    big.addEventListener("click", e => {
+      e.currentTarget.classList.remove("bigShow")
+    })
+
+    // 1. fetch 抓資料出來
+    fetch(url1)
+      .then(response => {
+        return response.json();
+      }).then(result => {
+        setList(result);
+      }).catch(error => {
+        console.log(error);
+      });
+
+    // 2.用 function 使用 fetch 抓出來的資料
+    // 原本 result是用console.log 改成setList
+    // 不需要傳任何內容sever就會傳出來
+    function setList(data) {
+      // console.log(data);
+      data.forEach((bd, index) => {
+        let template = `<div class="book" data-id="${bd.id}">
+      <div class="sn">${index + 1}</div>
+      <div class="title">${bd.title}</div>
+      <div class="author">${bd.auth}</div>
+    </div>`;
+        let node = document.createElement("div")
+        node.innerHTML = template;
+        books.append(node.children[0])
+      });
+      document.querySelectorAll(".book").forEach(book => {
+        book.addEventListener("click", e => {
+          getDetail(e.currentTarget.dataset.id);
+        })
+      });
+    }
+
+    // 3. 老師的第二支API 用來抓取狀態內容
+    // 原本 (e.currentTarget.dataset.id);是 console.log 改成getDetail
+    // 要有id 才可以用 (老師API自己設置的規格使用API要自己去看規則文件)
+    function getDetail(id){
+      // console.log(id);
+      fetch(url2, {
+        method: "post",
+        body: JSON.stringify({id}) // 物件的值 如果跟來源名稱一樣可以省略{id: id}
+      })
+      .then(response => {
+        return response.json();
+      }).then(result => {
+        showDetail(result.data); // 使用.data內容會精簡一些
+      }).catch(error => {
+        console.log(error);
+      });
+    }
+
+    // 4.顯示點擊後的內容
+    // 原本console.log(result); 改成showDetail(result);
+
+    function showDetail(data){
+      console.log(data);
+      bigImg.src = data.cover
+      bigH1.innerHTML = data.title
+      bigH2.innerHTML = data.auth
+      bigH3.innerHTML = data.releasedate
+      bigDescd.innerHTML = data.descd
+
+
+      big.classList.add("bigShow");
+    }
+  </script>
+</body>
+
+</html>
